@@ -1,82 +1,70 @@
 (() => {
   "use strict";
 
-  if (window.__APP_UPDATES_LOADED__) return;
-  window.__APP_UPDATES_LOADED__ = true;
+  if (window.__APP_TOOLS_V2__) return;
+  window.__APP_TOOLS_V2__ = true;
 
-  function startUpdatesHub() {
-    if (document.getElementById("updatesHub")) return;
+  function init() {
+    if (document.getElementById("appTools")) return;
 
-    const hub = document.createElement("section");
-    hub.id = "updatesHub";
+    const tools = document.createElement("section");
+    tools.id = "appTools";
 
-    hub.innerHTML = `
-      <div class="updates-header">
+    tools.innerHTML = `
+      <div class="toolsHeader">
         <div>
           <strong>🛠️ More Tools</strong>
-          <small>Advanced thumbnail features</small>
+          <small>Advanced editing</small>
         </div>
 
-        <button id="updatesToggle">
+        <button id="toolsToggle" type="button">
           Tools
         </button>
       </div>
 
-      <div id="updatesMenu" hidden>
+      <div id="toolsMenu" class="toolsMenu">
 
-        <button data-feature="crop">
+        <button type="button" data-tool="crop">
           ✂️ Crop
         </button>
 
-        <button data-feature="green">
+        <button type="button" data-tool="green">
           🟢 Green Screen
         </button>
 
-        <button data-feature="remove-bg">
+        <button type="button" data-tool="remove">
           🪄 Remove BG
         </button>
 
-        <button data-feature="effects">
+        <button type="button" data-tool="effects">
           🎨 Effects
         </button>
 
-        <button data-feature="layers">
+        <button type="button" data-tool="layers">
           📚 Layers
         </button>
 
-        <button data-feature="undo">
-          ↩️ Undo
-        </button>
-
-        <button data-feature="redo">
-          ↪️ Redo
-        </button>
-
-        <button data-feature="export">
-          📤 Export
-        </button>
-
-        <button data-feature="ai">
+        <button type="button" data-tool="ai">
           ✨ AI Studio
         </button>
 
       </div>
 
-      <div id="updatesStatus">
+      <div id="toolWorkspace"></div>
+
+      <div id="toolsStatus">
         Ready.
       </div>
     `;
 
-    const style = document.createElement("style");
+    const css = document.createElement("style");
 
-    style.id = "updatesHubStyles";
-
-    style.textContent = `
-      #updatesHub {
-        width: 100%;
-        max-width: 560px;
+    css.textContent = `
+      #appTools {
+        width: calc(100% - 20px);
+        max-width: 600px;
         margin: 12px auto;
-        padding: 10px;
+        padding: 12px;
         box-sizing: border-box;
         border-radius: 14px;
         background: #171a21;
@@ -85,57 +73,57 @@
         font-family: Arial, sans-serif;
       }
 
-      .updates-header {
+      .toolsHeader {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
       }
 
-      .updates-header strong {
+      .toolsHeader strong {
         display: block;
-        font-size: 14px;
+        font-size: 15px;
       }
 
-      .updates-header small {
+      .toolsHeader small {
         display: block;
         margin-top: 3px;
         color: #9ca3af;
         font-size: 11px;
       }
 
-      #updatesToggle {
+      #toolsToggle {
         width: auto;
-        min-width: 70px;
-        padding: 8px 12px;
+        min-width: 78px;
+        padding: 9px 13px;
         border: 0;
-        border-radius: 8px;
+        border-radius: 9px;
         background: #2563eb;
         color: white;
-        font-weight: 700;
+        font-weight: 800;
         cursor: pointer;
       }
 
-      #updatesMenu {
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-top: 10px;
-}
-
-#updatesMenu[hidden] {
-  display: none !important;
-}
-
-#updatesMenu:not([hidden]) {
-  display: grid;
-}
+      #toolsToggle:active {
+        transform: scale(.98);
       }
 
-      #updatesMenu button {
-        min-height: 38px;
+      .toolsMenu {
+        display: none;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        margin-top: 10px;
+      }
+
+      .toolsMenu.open {
+        display: grid;
+      }
+
+      .toolsMenu button {
+        min-height: 40px;
         padding: 7px 4px;
         border: 0;
-        border-radius: 8px;
+        border-radius: 9px;
         background: #29303b;
         color: white;
         font-size: 11px;
@@ -143,11 +131,76 @@
         cursor: pointer;
       }
 
-      #updatesMenu button:hover {
-        filter: brightness(1.15);
+      .toolsMenu button:active {
+        transform: scale(.97);
       }
 
-      #updatesStatus {
+      #toolWorkspace {
+        margin-top: 10px;
+      }
+
+      .toolPanel {
+        padding: 12px;
+        border-radius: 10px;
+        background: #20252e;
+        border: 1px solid #343b48;
+      }
+
+      .toolPanel h3 {
+        margin: 0 0 6px;
+        font-size: 14px;
+      }
+
+      .toolPanel p {
+        margin: 0 0 10px;
+        color: #aeb6c4;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      .cropControls {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+
+      .cropControls button {
+        min-height: 36px;
+        border: 0;
+        border-radius: 8px;
+        background: #303846;
+        color: white;
+        font-weight: 700;
+        font-size: 11px;
+      }
+
+      .cropControls button.active {
+        background: #2563eb;
+      }
+
+      .cropPrimary {
+        margin-top: 8px;
+        width: 100%;
+        min-height: 40px;
+        border: 0;
+        border-radius: 9px;
+        background: #059669;
+        color: white;
+        font-weight: 800;
+      }
+
+      .cropCancel {
+        margin-top: 6px;
+        width: 100%;
+        min-height: 36px;
+        border: 0;
+        border-radius: 9px;
+        background: #374151;
+        color: white;
+        font-weight: 700;
+      }
+
+      #toolsStatus {
         min-height: 16px;
         margin-top: 8px;
         text-align: center;
@@ -156,228 +209,342 @@
       }
 
       @media (max-width: 430px) {
-        #updatesMenu {
+        .toolsMenu {
           grid-template-columns: repeat(2, 1fr);
         }
       }
     `;
 
-    document.head.appendChild(style);
+    document.head.appendChild(css);
 
+    /*
+      Put the tools after the existing editor.
+    */
     const editor =
       document.getElementById("proEditor");
 
     if (editor) {
-      editor.appendChild(hub);
+      editor.appendChild(tools);
     } else {
-      document.body.appendChild(hub);
+      document.body.appendChild(tools);
     }
 
     const toggle =
-      document.getElementById("updatesToggle");
+      document.getElementById("toolsToggle");
 
     const menu =
-      document.getElementById("updatesMenu");
+      document.getElementById("toolsMenu");
+
+    const workspace =
+      document.getElementById("toolWorkspace");
 
     const status =
-      document.getElementById("updatesStatus");
+      document.getElementById("toolsStatus");
 
+    /*
+      REAL OPEN / CLOSE
+    */
     toggle.addEventListener("click", () => {
-      menu.hidden = !menu.hidden;
+
+      const isOpen =
+        menu.classList.toggle("open");
 
       toggle.textContent =
-        menu.hidden ? "Tools" : "Close";
+        isOpen ? "Close" : "Tools";
+
+      if (!isOpen) {
+        workspace.innerHTML = "";
+      }
     });
 
     /*
-      Feature controller.
-
-      These buttons do not fake AI processing.
-      They provide a safe central place for
-      connecting each real feature.
+      TOOL BUTTONS
     */
-
     menu
-      .querySelectorAll("[data-feature]")
+      .querySelectorAll("[data-tool]")
       .forEach(button => {
 
         button.addEventListener("click", () => {
 
-          const feature =
-            button.dataset.feature;
+          const tool =
+            button.dataset.tool;
 
-          switch (feature) {
-
-            case "crop":
-              openCrop();
-              break;
-
-            case "green":
-              openGreenScreen();
-              break;
-
-            case "remove-bg":
-              openRemoveBackground();
-              break;
-
-            case "effects":
-              openEffects();
-              break;
-
-            case "layers":
-              openLayers();
-              break;
-
-            case "undo":
-              performUndo();
-              break;
-
-            case "redo":
-              performRedo();
-              break;
-
-            case "export":
-              performExport();
-              break;
-
-            case "ai":
-              openAIStudio();
-              break;
+          if (tool === "crop") {
+            showCrop();
+            return;
           }
+
+          showMessage(
+            toolName(tool) +
+            " is planned for the next connection step."
+          );
         });
       });
 
-    function openCrop() {
+    function toolName(tool) {
 
-      const crop =
-        document.getElementById(
-          "fullCropEngine"
-        );
+      const names = {
+        green: "🟢 Green Screen",
+        remove: "🪄 Remove Background",
+        effects: "🎨 Effects",
+        layers: "📚 Layers",
+        ai: "✨ AI Studio"
+      };
 
-      if (crop) {
-        crop.scrollIntoView({
-          behavior: "smooth",
-          block: "center"
-        });
-
-        status.textContent =
-          "✂️ Crop tools opened.";
-
-        return;
-      }
-
-      status.textContent =
-        "✂️ Crop engine is not loaded yet.";
+      return names[tool] || "Tool";
     }
 
-    function openGreenScreen() {
+    function showMessage(message) {
+
+      workspace.innerHTML = `
+        <div class="toolPanel">
+          <h3>${message}</h3>
+          <p>
+            Your existing editor has not been changed.
+            This tool is ready for its full implementation.
+          </p>
+        </div>
+      `;
 
       status.textContent =
-        "🟢 Green Screen is ready for connection.";
-    }
-
-    function openRemoveBackground() {
-
-      status.textContent =
-        "🪄 Remove Background will use the secure AI/image-processing connection.";
-    }
-
-    function openEffects() {
-
-      status.textContent =
-        "🎨 Effects panel is ready for connection.";
-    }
-
-    function openLayers() {
-
-      status.textContent =
-        "📚 Layers system is ready for connection.";
-    }
-
-    function performUndo() {
-
-      if (
-        typeof window.undo ===
-        "function"
-      ) {
-        window.undo();
-        return;
-      }
-
-      status.textContent =
-        "↩️ Undo is ready for connection.";
-    }
-
-    function performRedo() {
-
-      if (
-        typeof window.redo ===
-        "function"
-      ) {
-        window.redo();
-        return;
-      }
-
-      status.textContent =
-        "↪️ Redo is ready for connection.";
-    }
-
-    function performExport() {
-
-      /*
-        Don't silently download anything.
-        This will eventually use the app's
-        proper export workflow.
-      */
-
-      status.textContent =
-        "📤 Export system is ready for the professional export workflow.";
-    }
-
-    function openAIStudio() {
-
-      const ai =
-        document.getElementById(
-          "aiStudio"
-        );
-
-      if (ai) {
-
-        ai.scrollIntoView({
-          behavior: "smooth",
-          block: "center"
-        });
-
-        status.textContent =
-          "✨ AI Studio opened.";
-
-        return;
-      }
-
-      status.textContent =
-        "✨ AI Studio is not connected yet.";
+        "Tool selected.";
     }
 
     /*
-      Crop event connection.
+      CROP PANEL
     */
+    function showCrop() {
 
-    window.addEventListener(
-      "cropApplied",
-      event => {
+      workspace.innerHTML = `
+        <div class="toolPanel">
 
-        const detail =
-          event.detail;
+          <h3>✂️ Crop</h3>
 
-        if (!detail) return;
+          <p>
+            Choose the crop format you want.
+            The real canvas crop operation will be
+            connected to your selected image next.
+          </p>
+
+          <div class="cropControls">
+
+            <button
+              type="button"
+              data-crop="free"
+              class="active">
+              Free
+            </button>
+
+            <button
+              type="button"
+              data-crop="16:9">
+              16:9
+            </button>
+
+            <button
+              type="button"
+              data-crop="1:1">
+              1:1
+            </button>
+
+            <button
+              type="button"
+              data-crop="4:5">
+              4:5
+            </button>
+
+            <button
+              type="button"
+              data-crop="9:16">
+              9:16
+            </button>
+
+            <button
+              type="button"
+              data-crop="4:3">
+              4:3
+            </button>
+
+          </div>
+
+          <button
+            id="cropStartButton"
+            class="cropPrimary"
+            type="button">
+            ✂️ Start Crop
+          </button>
+
+          <button
+            id="cropCancelButton"
+            class="cropCancel"
+            type="button">
+            Cancel
+          </button>
+
+        </div>
+      `;
+
+      const cropButtons =
+        workspace.querySelectorAll(
+          "[data-crop]"
+        );
+
+      cropButtons.forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            cropButtons.forEach(
+              item =>
+                item.classList.remove(
+                  "active"
+                )
+            );
+
+            button.classList.add(
+              "active"
+            );
+
+            status.textContent =
+              `Crop ratio: ${button.dataset.crop}`;
+          }
+        );
+      });
+
+      document
+        .getElementById(
+          "cropStartButton"
+        )
+        .addEventListener(
+          "click",
+          () => {
+
+            status.textContent =
+              "✂️ Crop mode activated.";
+
+            activateCropMode();
+          }
+        );
+
+      document
+        .getElementById(
+          "cropCancelButton"
+        )
+        .addEventListener(
+          "click",
+          () => {
+
+            workspace.innerHTML = "";
+
+            status.textContent =
+              "Crop cancelled.";
+          }
+        );
+    }
+
+    /*
+      Safe crop-mode activation.
+
+      We deliberately do not alter the existing
+      editor's image until the crop selection
+      is connected to the canvas.
+    */
+    function activateCropMode() {
+
+      const canvas =
+        document.getElementById(
+          "thumbnailCanvas"
+        );
+
+      if (!canvas) {
 
         status.textContent =
-          `✂️ Crop ready: ${detail.width} × ${detail.height}px`;
+          "Thumbnail canvas was not found.";
+
+        return;
       }
-    );
+
+      canvas.style.cursor =
+        "crosshair";
+
+      status.textContent =
+        "✂️ Crop mode is active — drag over the canvas.";
+
+      let startX = null;
+      let startY = null;
+
+      const down = event => {
+
+        startX =
+          event.clientX;
+
+        startY =
+          event.clientY;
+      };
+
+      const up = event => {
+
+        if (
+          startX === null ||
+          startY === null
+        ) {
+          return;
+        }
+
+        const width =
+          Math.abs(
+            event.clientX -
+            startX
+          );
+
+        const height =
+          Math.abs(
+            event.clientY -
+            startY
+          );
+
+        if (
+          width < 10 ||
+          height < 10
+        ) {
+
+          status.textContent =
+            "Make a larger crop selection.";
+
+        } else {
+
+          status.textContent =
+            `Crop area selected: ${Math.round(width)} × ${Math.round(height)}px`;
+        }
+
+        startX = null;
+        startY = null;
+      };
+
+      canvas.addEventListener(
+        "pointerdown",
+        down
+      );
+
+      canvas.addEventListener(
+        "pointerup",
+        up
+      );
+
+      /*
+        Keep references so a future version can
+        cleanly replace this mode.
+      */
+      window.__APP_CROP_MODE__ = {
+        canvas,
+        down,
+        up
+      };
+    }
 
     console.log(
-      "🛠️ Updates Hub loaded."
+      "🛠️ App Tools V2 loaded successfully."
     );
   }
 
@@ -385,12 +552,16 @@
     document.readyState ===
     "loading"
   ) {
+
     document.addEventListener(
       "DOMContentLoaded",
-      startUpdatesHub
+      init
     );
+
   } else {
-    startUpdatesHub();
+
+    init();
+
   }
 
 })();
