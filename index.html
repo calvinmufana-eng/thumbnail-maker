@@ -3,18 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thumbnail Maker</title>
+  <title>Thumbnail Maker Pro</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <main class="app">
-    <header>
-      <h1>Thumbnail Maker</h1>
-      <p>Create a YouTube-style thumbnail in your browser.</p>
+
+    <header class="app-header">
+      <div>
+        <h1>Thumbnail Maker Pro</h1>
+        <p>Create thumbnails, Shorts covers and social designs.</p>
+      </div>
+
+      <div class="format-control">
+        <label for="formatInput">Format</label>
+        <select id="formatInput">
+          <option value="youtube">YouTube Thumbnail — 1280×720</option>
+          <option value="shorts">TikTok / Shorts / Reels — 1080×1920</option>
+          <option value="square">Instagram Square — 1080×1080</option>
+          <option value="portrait">Instagram Portrait — 1080×1350</option>
+          <option value="custom">Custom Size</option>
+        </select>
+      </div>
     </header>
 
     <section class="workspace">
-      <div class="controls">
+
+      <aside class="controls">
+        <h2>Tools</h2>
+
         <label>
           Upload image
           <input id="imageInput" type="file" accept="image/*">
@@ -22,23 +40,42 @@
 
         <label>
           Title
-          <input id="titleInput" type="text" value="YOUR THUMBNAIL TITLE" maxlength="60">
+          <input
+            id="titleInput"
+            type="text"
+            value="YOUR THUMBNAIL TITLE"
+            maxlength="60"
+          >
         </label>
 
         <label>
           Font size
-          <input id="fontSizeInput" type="range" min="30" max="120" value="70">
+          <input
+            id="fontSizeInput"
+            type="range"
+            min="20"
+            max="180"
+            value="70"
+          >
           <span id="fontSizeValue">70px</span>
         </label>
 
         <label>
           Text color
-          <input id="textColorInput" type="color" value="#ffffff">
+          <input
+            id="textColorInput"
+            type="color"
+            value="#ffffff"
+          >
         </label>
 
         <label>
           Background
-          <input id="backgroundInput" type="color" value="#202020">
+          <input
+            id="backgroundInput"
+            type="color"
+            value="#202020"
+          >
         </label>
 
         <label class="checkbox">
@@ -46,13 +83,141 @@
           Text shadow
         </label>
 
-        <button id="downloadBtn">Download Thumbnail</button>
-      </div>
+        <hr>
 
-      <div class="preview-wrap">
-        <canvas id="thumbnailCanvas" width="1280" height="720"></canvas>
-      </div>
+        <h2>Add Elements</h2>
+
+        <button id="addTextBtn" type="button">+ Text</button>
+        <button id="addArrowBtn" type="button">➜ Arrow</button>
+        <button id="addCircleBtn" type="button">○ Circle</button>
+        <button id="addRectangleBtn" type="button">▭ Rectangle</button>
+        <button id="addEmojiBtn" type="button">😀 Emoji</button>
+
+        <hr>
+
+        <h2>Image Adjustments</h2>
+
+        <label>
+          Brightness
+          <input
+            id="brightnessInput"
+            type="range"
+            min="50"
+            max="150"
+            value="100"
+          >
+        </label>
+
+        <label>
+          Contrast
+          <input
+            id="contrastInput"
+            type="range"
+            min="50"
+            max="150"
+            value="100"
+          >
+        </label>
+
+        <label>
+          Saturation
+          <input
+            id="saturationInput"
+            type="range"
+            min="0"
+            max="200"
+            value="100"
+          >
+        </label>
+
+        <label>
+          Blur
+          <input
+            id="blurInput"
+            type="range"
+            min="0"
+            max="10"
+            value="0"
+          >
+        </label>
+
+        <hr>
+
+        <h2>History</h2>
+
+        <div class="button-row">
+          <button id="undoBtn" type="button">↶ Undo</button>
+          <button id="redoBtn" type="button">↷ Redo</button>
+        </div>
+
+        <button id="resetBtn" type="button">Reset Canvas</button>
+
+        <hr>
+
+        <h2>Export</h2>
+
+        <button id="downloadPngBtn" type="button">
+          Download PNG
+        </button>
+
+        <button id="downloadJpgBtn" type="button">
+          Download JPG
+        </button>
+      </aside>
+
+      <section class="preview-area">
+
+        <div class="canvas-toolbar">
+          <span id="canvasSizeLabel">1280 × 720</span>
+          <span id="zoomLabel">100%</span>
+        </div>
+
+        <div class="preview-wrap">
+          <canvas
+            id="thumbnailCanvas"
+            width="1280"
+            height="720"
+          ></canvas>
+        </div>
+
+      </section>
+
+      <aside class="layers-panel">
+
+        <h2>Layers</h2>
+
+        <div id="layersList">
+          <div class="empty-layers">
+            No additional layers yet.
+          </div>
+        </div>
+
+        <hr>
+
+        <h2>Selected Element</h2>
+
+        <button id="duplicateBtn" type="button">
+          Duplicate
+        </button>
+
+        <button id="deleteBtn" type="button">
+          Delete
+        </button>
+
+        <div class="button-row">
+          <button id="bringForwardBtn" type="button">
+            Bring Forward
+          </button>
+
+          <button id="sendBackwardBtn" type="button">
+            Send Back
+          </button>
+        </div>
+
+      </aside>
+
     </section>
+
   </main>
 
   <script src="script.js"></script>
