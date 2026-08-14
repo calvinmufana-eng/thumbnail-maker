@@ -18,3 +18,10 @@
 
   document.head.appendChild(script);
 })();
+const script = document.createElement("script");
+script.src = "pro-editor.js";
+document.body.appendChild(script);
+
+const resizeScript = document.createElement("script");
+resizeScript.src = "pro-resize.js";
+document.body.appendChild(resizeScript);
