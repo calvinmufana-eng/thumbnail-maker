@@ -578,4 +578,238 @@ formatInput.addEventListener("change", () => {
 document
   .getElementById("addTextBtn")
   .addEventListener("click", () => {
-    add
+    addElement("text", {
+      text: "NEW TEXT",
+      fontSize: 70,
+      width: 350,
+      height: 100,
+      color: "#ffffff",
+      stroke: "#000000",
+      strokeWidth: 6
+    });
+  });
+
+document
+  .getElementById("addArrowBtn")
+  .addEventListener("click", () => {
+    addElement("arrow", {
+      width: 300,
+      height: 70,
+      color: "#ff0000",
+      strokeWidth: 18
+    });
+  });
+
+document
+  .getElementById("addCircleBtn")
+  .addEventListener("click", () => {
+    addElement("circle", {
+      width: 220,
+      height: 220,
+      color: "#ff0000",
+      strokeWidth: 12
+    });
+  });
+
+document
+  .getElementById("addRectangleBtn")
+  .addEventListener("click", () => {
+    addElement("rectangle", {
+      width: 300,
+      height: 150,
+      fill: "#ff0000",
+      color: "#ffffff",
+      strokeWidth: 5
+    });
+  });
+
+document
+  .getElementById("addEmojiBtn")
+  .addEventListener("click", () => {
+    const emoji = prompt(
+      "Enter an emoji:",
+      "🔥"
+    );
+
+    if (emoji) {
+      addElement("emoji", {
+        text: emoji,
+        width: 120,
+        height: 120,
+        fontSize: 100
+      });
+    }
+  });
+
+document
+  .getElementById("undoBtn")
+  .addEventListener("click", undo);
+
+document
+  .getElementById("redoBtn")
+  .addEventListener("click", redo);
+
+document
+  .getElementById("resetBtn")
+  .addEventListener("click", () => {
+    if (
+      !confirm(
+        "Reset the canvas and remove all elements?"
+      )
+    ) {
+      return;
+    }
+
+    elements = [];
+    selectedId = null;
+    backgroundImage = null;
+
+    backgroundInput.value = "#202020";
+    brightnessInput.value = 100;
+    contrastInput.value = 100;
+    saturationInput.value = 100;
+    blurInput.value = 0;
+
+    titleInput.value =
+      "YOUR THUMBNAIL TITLE";
+
+    draw();
+    renderLayers();
+    saveState();
+  });
+
+document
+  .getElementById("deleteBtn")
+  .addEventListener("click", () => {
+    if (!selectedId) return;
+
+    elements = elements.filter(
+      element => element.id !== selectedId
+    );
+
+    selectedId = null;
+
+    renderLayers();
+    draw();
+    saveState();
+  });
+
+document
+  .getElementById("duplicateBtn")
+  .addEventListener("click", () => {
+    const selected = getSelectedElement();
+
+    if (!selected) return;
+
+    const copy = {
+      ...selected,
+      id: createId(),
+      x: selected.x + 30,
+      y: selected.y + 30
+    };
+
+    elements.push(copy);
+    selectedId = copy.id;
+
+    renderLayers();
+    draw();
+    saveState();
+  });
+
+document
+  .getElementById("bringForwardBtn")
+  .addEventListener("click", () => {
+    const index = elements.findIndex(
+      element => element.id === selectedId
+    );
+
+    if (
+      index === -1 ||
+      index === elements.length - 1
+    ) {
+      return;
+    }
+
+    const temp = elements[index];
+
+    elements[index] =
+      elements[index + 1];
+
+    elements[index + 1] = temp;
+
+    renderLayers();
+    draw();
+    saveState();
+  });
+
+document
+  .getElementById("sendBackwardBtn")
+  .addEventListener("click", () => {
+    const index = elements.findIndex(
+      element => element.id === selectedId
+    );
+
+    if (index <= 0) return;
+
+    const temp = elements[index];
+
+    elements[index] =
+      elements[index - 1];
+
+    elements[index - 1] = temp;
+
+    renderLayers();
+    draw();
+    saveState();
+  });
+
+document
+  .getElementById("downloadPngBtn")
+  .addEventListener("click", () => {
+    downloadImage("png");
+  });
+
+document
+  .getElementById("downloadJpgBtn")
+  .addEventListener("click", () => {
+    downloadImage("jpeg");
+  });
+
+function downloadImage(type) {
+  draw();
+
+  const link = document.createElement("a");
+
+  link.download =
+    type === "png"
+      ? "thumbnail-maker.png"
+      : "thumbnail-maker.jpg";
+
+  link.href =
+    canvas.toDataURL(
+      `image/${type}`,
+      0.95
+    );
+
+  link.click();
+}
+
+updateFontSizeLabel();
+
+addElement("text", {
+  id: "main-title",
+  text: "YOUR THUMBNAIL TITLE",
+  x: canvas.width / 2,
+  y: canvas.height - 110,
+  width: canvas.width * 0.85,
+  height: 120,
+  fontSize: 70,
+  color: "#ffffff",
+  stroke: "#000000",
+  strokeWidth: 6
+});
+
+saveState();
+draw();
+renderLayers();
+    
