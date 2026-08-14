@@ -22,16 +22,16 @@
     return;
   }
 
-  // ==========================================
-  // RESIZE / CROP CONTROLS
-  // ==========================================
-
   const section = document.createElement("div");
 
   section.className = "pro-resize-section";
 
   section.innerHTML = `
-    <h3>📏 Resize & Crop</h3>
+    <h3>📏 Transform</h3>
+
+    <button id="proMoveOnly">
+      🖱️ Move Only: ON
+    </button>
 
     <label>
       Size
@@ -46,31 +46,17 @@
     </label>
 
     <div class="pro-resize-buttons">
-
-      <button id="proSizeUp">
-        ➕ Bigger
-      </button>
-
-      <button id="proSizeDown">
-        ➖ Smaller
-      </button>
-
-      <button id="proCrop">
-        ✂️ Crop Mode
-      </button>
-
+      <button id="proSizeUp">➕ Bigger</button>
+      <button id="proSizeDown">➖ Smaller</button>
+      <button id="proCrop">✂️ Crop</button>
     </div>
 
     <p id="proResizeStatus">
-      Select a photo first.
+      Move Only is ON.
     </p>
   `;
 
   panel.appendChild(section);
-
-  // ==========================================
-  // STYLES
-  // ==========================================
 
   const style = document.createElement("style");
 
@@ -88,6 +74,7 @@
 
     .pro-resize-section label {
       display: block;
+      margin-top: 12px;
       font-size: 13px;
       font-weight: 700;
     }
@@ -110,8 +97,9 @@
       font-size: 12px;
     }
 
-    .pro-resize-buttons button:hover {
-      background: #4b5563;
+    #proMoveOnly {
+      margin-top: 0;
+      background: #059669;
     }
 
     #proCrop {
@@ -128,44 +116,40 @@
 
   document.head.appendChild(style);
 
-  // ==========================================
-  // ELEMENTS
-  // ==========================================
-
   const sizeSlider =
     document.getElementById("proSize");
 
   const sizeValue =
     document.getElementById("proSizeValue");
 
+  const moveButton =
+    document.getElementById("proMoveOnly");
+
   const status =
     document.getElementById("proResizeStatus");
 
-  // ==========================================
-  // UPDATE SIZE
-  // ==========================================
+  let moveOnly = true;
 
   function updateSize(value) {
-
-    const layer =
-      editor.getSelected();
+    const layer = editor.getSelected();
 
     if (!layer) {
-
       status.textContent =
         "Select a photo first.";
+      return;
+    }
 
+    if (moveOnly) {
+      status.textContent =
+        "Move Only is ON — use the Size slider to resize.";
       return;
     }
 
     const scale =
       Number(value) / 100;
 
-    layer.scaleX =
-      scale >= 0 ? scale : 1;
-
-    layer.scaleY =
-      scale >= 0 ? scale : 1;
+    layer.scaleX = scale;
+    layer.scaleY = scale;
 
     sizeValue.textContent =
       `${value}%`;
@@ -176,24 +160,44 @@
     editor.render();
   }
 
-  // ==========================================
-  // SLIDER
-  // ==========================================
+  moveButton.addEventListener(
+    "click",
+    () => {
+
+      moveOnly = !moveOnly;
+
+      if (moveOnly) {
+
+        moveButton.textContent =
+          "🖱️ Move Only: ON";
+
+        moveButton.style.background =
+          "#059669";
+
+        status.textContent =
+          "Move Only is ON.";
+
+      } else {
+
+        moveButton.textContent =
+          "📏 Resize Mode: ON";
+
+        moveButton.style.background =
+          "#2563eb";
+
+        status.textContent =
+          "Resize Mode is ON.";
+
+      }
+    }
+  );
 
   sizeSlider.addEventListener(
     "input",
     () => {
-
-      updateSize(
-        sizeSlider.value
-      );
-
+      updateSize(sizeSlider.value);
     }
   );
-
-  // ==========================================
-  // BIGGER
-  // ==========================================
 
   document
     .getElementById("proSizeUp")
@@ -201,12 +205,9 @@
       "click",
       () => {
 
-        const layer =
-          editor.getSelected();
-
-        if (!layer) {
+        if (moveOnly) {
           status.textContent =
-            "Select a photo first.";
+            "Turn Resize Mode ON first.";
           return;
         }
 
@@ -216,16 +217,11 @@
         value =
           Math.min(value, 200);
 
-        sizeSlider.value =
-          value;
+        sizeSlider.value = value;
 
         updateSize(value);
       }
     );
-
-  // ==========================================
-  // SMALLER
-  // ==========================================
 
   document
     .getElementById("proSizeDown")
@@ -233,12 +229,9 @@
       "click",
       () => {
 
-        const layer =
-          editor.getSelected();
-
-        if (!layer) {
+        if (moveOnly) {
           status.textContent =
-            "Select a photo first.";
+            "Turn Resize Mode ON first.";
           return;
         }
 
@@ -248,16 +241,11 @@
         value =
           Math.max(value, 10);
 
-        sizeSlider.value =
-          value;
+        sizeSlider.value = value;
 
         updateSize(value);
       }
     );
-
-  // ==========================================
-  // CROP MODE
-  // ==========================================
 
   document
     .getElementById("proCrop")
@@ -265,25 +253,23 @@
       "click",
       () => {
 
-        const layer =
-          editor.getSelected();
+        const layer = editor.getSelected();
 
         if (!layer) {
-
           status.textContent =
             "Select a photo first.";
-
           return;
         }
 
         status.textContent =
-          "Crop mode is ready for the next editing upgrade.";
-
+          "Crop tool coming next.";
       }
     );
 
   console.log(
-    "📏 Resize controls loaded."
+    "📏 Move/Resize controls loaded."
   );
 
 })();
+
+  
