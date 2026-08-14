@@ -1,4 +1,7 @@
- (() => {
+if (window.__PRO_EDITOR_LOADED__) {
+  console.log("Pro Editor already loaded — skipping duplicate.");
+} else {
+  window.__PRO_EDITOR_LOADED__ = true; (() => {
   "use strict";
 
   const canvas = document.getElementById("thumbnailCanvas");
@@ -628,3 +631,4 @@
     "✨ Pro Editor loaded successfully."
   );
 })();
+}
