@@ -666,8 +666,22 @@
     }
   });
 
-  console.log(
-    "✨ Pro Editor loaded successfully."
-  );
+  // ==========================================
+// PUBLIC PRO EDITOR API
+// ==========================================
+
+window.ProEditor = {
+  getSelected() {
+    return selected;
+  },
+
+  render() {
+    render();
+  }
+};
+
+console.log(
+  "✨ Pro Editor loaded successfully."
+);
 
 })();
