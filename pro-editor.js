@@ -1,7 +1,19 @@
-if (window.__PRO_EDITOR_LOADED__) {
-  console.log("Pro Editor already loaded — skipping duplicate.");
-} else {
-  window.__PRO_EDITOR_LOADED__ = true; (() => {
+(() => {
+  "use strict";
+
+  if (window.__PRO_EDITOR_LOADED__) {
+    console.log("Pro Editor already loaded — skipping duplicate.");
+    return;
+  }
+
+  window.__PRO_EDITOR_LOADED__ = true;
+
+  const canvas = document.getElementById("thumbnailCanvas");
+
+  if (!canvas) {
+    console.error("Pro Editor: thumbnailCanvas was not found.");
+    return;
+  } (() => {
   "use strict";
 
   const canvas = document.getElementById("thumbnailCanvas");
