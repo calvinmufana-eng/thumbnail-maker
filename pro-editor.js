@@ -1,74 +1,76 @@
-/* =========================================
-   THUMBNAIL MAKER — PRO EDITOR
-   Step 4A: Advanced image layers
-   ========================================= */
-
-(() => {
+ (() => {
   "use strict";
 
   const canvas = document.getElementById("thumbnailCanvas");
 
   if (!canvas) {
-    console.error("Thumbnail Maker: canvas not found.");
+    console.error("Pro Editor: thumbnailCanvas was not found.");
     return;
   }
 
-  const ctx = canvas.getContext("2d");
+  // --------------------------------------------------
+  // PRO EDITOR STATE
+  // --------------------------------------------------
 
-  // Keep the Pro Editor separate from the original editor.
-  const proLayers = [];
-
-  let selectedLayer = null;
+  const layers = [];
+  let selected = null;
   let dragging = false;
-  let resizing = false;
-  let rotating = false;
 
-  let startX = 0;
-  let startY = 0;
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let layerStartX = 0;
+  let layerStartY = 0;
 
-  let startLayerX = 0;
-  let startLayerY = 0;
+  // --------------------------------------------------
+  // CREATE PANEL
+  // --------------------------------------------------
 
-  let startWidth = 0;
-  let startHeight = 0;
+  const panel = document.createElement("section");
 
-  let startRotation = 0;
-
-  // -----------------------------------------
-  // Create the Pro Editor panel
-  // -----------------------------------------
-
-  const panel = document.createElement("div");
-
-  panel.id = "proEditorPanel";
+  panel.id = "proEditor";
 
   panel.innerHTML = `
-    <div class="pro-editor-title">
-      <h2>Pro Editor</h2>
-      <p>Add and transform image layers.</p>
+    <div class="pro-header">
+      <h2>✨ Pro Editor</h2>
+      <p>Add your photo and build your thumbnail.</p>
     </div>
 
-    <label class="pro-upload">
-      Add Photo
+    <label class="pro-upload-button">
+      📷 Upload Your Photo
       <input
-        id="proImageInput"
+        id="proPhotoInput"
         type="file"
         accept="image/*"
         multiple
+        hidden
       >
     </label>
 
-    <div class="pro-buttons">
-      <button id="proDuplicate">Duplicate</button>
-      <button id="proDelete">Delete</button>
+    <div class="pro-status" id="proStatus">
+      No photo selected
     </div>
 
-    <div class="pro-buttons">
-      <button id="proRotateLeft">↶ Rotate</button>
-      <button id="proRotateRight">Rotate ↷</button>
+    <div class="pro-tools">
+      <button type="button" id="proRotateLeft">
+        ↶ Rotate
+      </button>
+
+      <button type="button" id="proRotateRight">
+        Rotate ↷
+      </button>
     </div>
 
-    <label>
+    <div class="pro-tools">
+      <button type="button" id="proDuplicate">
+        📋 Duplicate
+      </button>
+
+      <button type="button" id="proDelete">
+        🗑️ Delete
+      </button>
+    </div>
+
+    <label class="pro-control">
       Opacity
       <input
         id="proOpacity"
@@ -79,82 +81,171 @@
       >
     </label>
 
-    <div class="pro-info">
-      <strong>Selected layer</strong>
-      <span id="proSelectedName">None</span>
-    </div>
-
-    <div class="pro-help">
-      <strong>How to use</strong>
-      <p>
-        Upload a photo, tap it on the canvas,
-        then drag it to move it.
-      </p>
-      <p>
-        Use the buttons to rotate, duplicate,
-        or delete the selected photo.
-      </p>
+    <div class="pro-tip">
+      💡 <strong>Tip:</strong>
+      Upload a photo, then drag it around the canvas.
     </div>
   `;
 
-  const workspace = document.querySelector(".workspace");
+  const controls =
+    document.querySelector(".controls");
 
-  if (workspace) {
-    const controls = document.querySelector(".controls");
-
-    if (controls) {
-      controls.appendChild(panel);
-    } else {
-      workspace.appendChild(panel);
-    }
+  if (controls) {
+    controls.appendChild(panel);
+  } else {
+    document.body.appendChild(panel);
   }
 
-  // -----------------------------------------
-  // Image upload
-  // -----------------------------------------
+  // --------------------------------------------------
+  // STYLES
+  // --------------------------------------------------
 
-  const imageInput =
-    document.getElementById("proImageInput");
+  const style = document.createElement("style");
 
-  imageInput.addEventListener("change", event => {
-    const files = Array.from(event.target.files);
+  style.textContent = `
+    #proEditor {
+      margin-top: 20px;
+      padding: 16px;
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 14px;
+    }
+
+    #proEditor .pro-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    #proEditor .pro-header p {
+      margin: 6px 0 16px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .pro-upload-button {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      background: #2563eb;
+      color: white;
+      text-align: center;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .pro-upload-button:hover {
+      background: #1d4ed8;
+    }
+
+    .pro-status {
+      margin-top: 10px;
+      padding: 9px;
+      border-radius: 8px;
+      background: #1f2937;
+      color: #cbd5e1;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .pro-tools {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .pro-tools button {
+      font-size: 12px;
+    }
+
+    .pro-control {
+      display: block;
+      margin-top: 15px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .pro-control input {
+      display: block;
+      width: 100%;
+      margin-top: 7px;
+    }
+
+    .pro-tip {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 9px;
+      background: #1f2937;
+      color: #cbd5e1;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+  `;
+
+  document.head.appendChild(style);
+
+  // --------------------------------------------------
+  // ELEMENTS
+  // --------------------------------------------------
+
+  const photoInput =
+    document.getElementById("proPhotoInput");
+
+  const status =
+    document.getElementById("proStatus");
+
+  const opacity =
+    document.getElementById("proOpacity");
+
+  // --------------------------------------------------
+  // UPLOAD PHOTO
+  // --------------------------------------------------
+
+  photoInput.addEventListener("change", event => {
+    const files =
+      Array.from(event.target.files);
 
     files.forEach(file => {
-      const reader = new FileReader();
+      const reader =
+        new FileReader();
 
-      reader.onload = readerEvent => {
-        const image = new Image();
+      reader.onload = () => {
+        const image =
+          new Image();
 
         image.onload = () => {
-          const maxSize =
-            Math.min(canvas.width, canvas.height) * 0.65;
+          const maxWidth =
+            canvas.width * 0.55;
 
-          let width = image.width;
-          let height = image.height;
+          const maxHeight =
+            canvas.height * 0.75;
 
-          const ratio = width / height;
+          let width =
+            image.width;
 
-          if (width > maxSize) {
-            width = maxSize;
-            height = width / ratio;
-          }
+          let height =
+            image.height;
 
-          if (height > maxSize) {
-            height = maxSize;
-            width = height * ratio;
-          }
+          const scale =
+            Math.min(
+              maxWidth / width,
+              maxHeight / height,
+              1
+            );
+
+          width *= scale;
+          height *= scale;
 
           const layer = {
-            id:
-              Date.now() +
-              Math.random(),
-
+            image,
             name: file.name,
 
-            image,
+            x:
+              canvas.width / 2,
 
-            x: canvas.width / 2,
-            y: canvas.height / 2,
+            y:
+              canvas.height / 2,
 
             width,
             height,
@@ -164,34 +255,36 @@
             opacity: 1
           };
 
-          proLayers.push(layer);
+          layers.push(layer);
 
-          selectedLayer = layer;
+          selected = layer;
 
-          updateSelectedInfo();
+          status.textContent =
+            `Selected: ${file.name}`;
 
-          render();
+          opacity.value = 100;
 
-          console.log(
-            "Pro Editor: image added",
-            layer.name
-          );
+          redraw();
         };
 
-        image.src = readerEvent.target.result;
+        image.src =
+          reader.result;
       };
 
       reader.readAsDataURL(file);
     });
 
-    imageInput.value = "";
+    photoInput.value = "";
   });
 
-  // -----------------------------------------
-  // Draw image layer
-  // -----------------------------------------
+  // --------------------------------------------------
+  // DRAW PRO LAYERS
+  // --------------------------------------------------
 
   function drawLayer(layer) {
+    const ctx =
+      canvas.getContext("2d");
+
     ctx.save();
 
     ctx.translate(
@@ -210,26 +303,23 @@
 
     ctx.drawImage(
       layer.image,
-
       -layer.width / 2,
       -layer.height / 2,
-
       layer.width,
       layer.height
     );
 
     ctx.restore();
-
-    if (layer === selectedLayer) {
-      drawSelection(layer);
-    }
   }
 
-  // -----------------------------------------
-  // Selection box
-  // -----------------------------------------
+  // --------------------------------------------------
+  // SELECTION
+  // --------------------------------------------------
 
   function drawSelection(layer) {
+    const ctx =
+      canvas.getContext("2d");
+
     ctx.save();
 
     ctx.translate(
@@ -244,13 +334,13 @@
     );
 
     ctx.strokeStyle =
-      "#3b82f6";
+      "#60a5fa";
 
     ctx.lineWidth = 4;
 
     ctx.setLineDash([
       10,
-      7
+      6
     ]);
 
     ctx.strokeRect(
@@ -262,108 +352,53 @@
 
     ctx.setLineDash([]);
 
-    // Resize handle
-    ctx.fillStyle =
-      "#3b82f6";
-
-    ctx.fillRect(
-      layer.width / 2 - 10,
-      layer.height / 2 - 10,
-      20,
-      20
-    );
-
-    // Rotation handle
-    ctx.beginPath();
-
-    ctx.arc(
-      0,
-      -layer.height / 2 - 35,
-      10,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
     ctx.restore();
   }
 
-  // -----------------------------------------
-  // Render
-  // -----------------------------------------
+  // --------------------------------------------------
+  // REDRAW
+  // --------------------------------------------------
 
-  function render() {
+  function redraw() {
     /*
-      The original editor already draws the
-      background and its own elements.
-
-      We only draw Pro Editor layers here.
+      We intentionally do not clear the canvas here.
+      The existing thumbnail editor remains responsible
+      for its normal canvas rendering.
     */
 
-    proLayers.forEach(layer => {
-      drawLayer(layer);
-    });
+    layers.forEach(drawLayer);
+
+    if (selected) {
+      drawSelection(selected);
+    }
   }
 
-  // -----------------------------------------
-  // Canvas coordinates
-  // -----------------------------------------
-
-  function getPosition(event) {
-    const rect =
-      canvas.getBoundingClientRect();
-
-    return {
-      x:
-        (event.clientX -
-          rect.left) *
-        (canvas.width /
-          rect.width),
-
-      y:
-        (event.clientY -
-          rect.top) *
-        (canvas.height /
-          rect.height)
-    };
-  }
-
-  // -----------------------------------------
-  // Hit detection
-  // -----------------------------------------
+  // --------------------------------------------------
+  // FIND PHOTO
+  // --------------------------------------------------
 
   function findLayer(x, y) {
     for (
-      let i =
-        proLayers.length - 1;
+      let i = layers.length - 1;
       i >= 0;
       i--
     ) {
       const layer =
-        proLayers[i];
-
-      const left =
-        layer.x -
-        layer.width / 2;
-
-      const right =
-        layer.x +
-        layer.width / 2;
-
-      const top =
-        layer.y -
-        layer.height / 2;
-
-      const bottom =
-        layer.y +
-        layer.height / 2;
+        layers[i];
 
       if (
-        x >= left &&
-        x <= right &&
-        y >= top &&
-        y <= bottom
+        x >=
+          layer.x -
+          layer.width / 2 &&
+        x <=
+          layer.x +
+          layer.width / 2 &&
+        y >=
+          layer.y -
+          layer.height / 2 &&
+        y <=
+          layer.y +
+          layer.height / 2
       ) {
         return layer;
       }
@@ -372,287 +407,224 @@
     return null;
   }
 
-  // -----------------------------------------
-  // Pointer down
-  // -----------------------------------------
+  // --------------------------------------------------
+  // CANVAS POINTER
+  // --------------------------------------------------
 
   canvas.addEventListener(
     "pointerdown",
     event => {
-      const position =
-        getPosition(event);
+      const rect =
+        canvas.getBoundingClientRect();
+
+      const x =
+        (event.clientX -
+          rect.left) *
+        canvas.width /
+        rect.width;
+
+      const y =
+        (event.clientY -
+          rect.top) *
+        canvas.height /
+        rect.height;
 
       const layer =
-        findLayer(
-          position.x,
-          position.y
-        );
+        findLayer(x, y);
 
       if (!layer) {
-        selectedLayer = null;
-
-        updateSelectedInfo();
-
         return;
       }
 
-      selectedLayer =
-        layer;
+      selected = layer;
 
       dragging = true;
 
-      startX =
-        position.x;
+      pointerStartX = x;
+      pointerStartY = y;
 
-      startY =
-        position.y;
-
-      startLayerX =
+      layerStartX =
         layer.x;
 
-      startLayerY =
+      layerStartY =
         layer.y;
+
+      status.textContent =
+        `Selected: ${layer.name}`;
 
       canvas.setPointerCapture(
         event.pointerId
       );
 
-      updateSelectedInfo();
-
-      event.stopPropagation();
-    },
-    true
+      redraw();
+    }
   );
-
-  // -----------------------------------------
-  // Pointer move
-  // -----------------------------------------
 
   canvas.addEventListener(
     "pointermove",
     event => {
       if (
         !dragging ||
-        !selectedLayer
+        !selected
       ) {
         return;
       }
 
-      const position =
-        getPosition(event);
+      const rect =
+        canvas.getBoundingClientRect();
 
-      const dx =
-        position.x -
-        startX;
+      const x =
+        (event.clientX -
+          rect.left) *
+        canvas.width /
+        rect.width;
 
-      const dy =
-        position.y -
-        startY;
+      const y =
+        (event.clientY -
+          rect.top) *
+        canvas.height /
+        rect.height;
 
-      selectedLayer.x =
-        startLayerX + dx;
+      selected.x =
+        layerStartX +
+        (x - pointerStartX);
 
-      selectedLayer.y =
-        startLayerY + dy;
+      selected.y =
+        layerStartY +
+        (y - pointerStartY);
 
-      render();
-
-      event.stopPropagation();
-    },
-    true
+      redraw();
+    }
   );
-
-  // -----------------------------------------
-  // Pointer up
-  // -----------------------------------------
 
   canvas.addEventListener(
     "pointerup",
-    event => {
-      if (!dragging) return;
-
+    () => {
       dragging = false;
-
-      try {
-        canvas.releasePointerCapture(
-          event.pointerId
-        );
-      } catch {}
-
-      event.stopPropagation();
-    },
-    true
+    }
   );
 
-  // -----------------------------------------
-  // Duplicate
-  // -----------------------------------------
+  // --------------------------------------------------
+  // ROTATE
+  // --------------------------------------------------
 
   document
-    .getElementById("proDuplicate")
+    .getElementById(
+      "proRotateLeft"
+    )
     .addEventListener(
       "click",
       () => {
-        if (!selectedLayer) return;
+        if (!selected) return;
 
-        const copy = {
-          ...selectedLayer,
+        selected.rotation -= 15;
 
-          id:
-            Date.now() +
-            Math.random(),
-
-          x:
-            selectedLayer.x +
-            40,
-
-          y:
-            selectedLayer.y +
-            40
-        };
-
-        proLayers.push(copy);
-
-        selectedLayer =
-          copy;
-
-        updateSelectedInfo();
-
-        render();
+        redraw();
       }
     );
 
-  // -----------------------------------------
-  // Delete
-  // -----------------------------------------
-
   document
-    .getElementById("proDelete")
+    .getElementById(
+      "proRotateRight"
+    )
     .addEventListener(
       "click",
       () => {
-        if (!selectedLayer) return;
+        if (!selected) return;
+
+        selected.rotation += 15;
+
+        redraw();
+      }
+    );
+
+  // --------------------------------------------------
+  // DUPLICATE
+  // --------------------------------------------------
+
+  document
+    .getElementById(
+      "proDuplicate"
+    )
+    .addEventListener(
+      "click",
+      () => {
+        if (!selected) return;
+
+        const copy = {
+          ...selected,
+
+          x:
+            selected.x + 40,
+
+          y:
+            selected.y + 40
+        };
+
+        layers.push(copy);
+
+        selected = copy;
+
+        status.textContent =
+          `Selected: ${copy.name}`;
+
+        redraw();
+      }
+    );
+
+  // --------------------------------------------------
+  // DELETE
+  // --------------------------------------------------
+
+  document
+    .getElementById(
+      "proDelete"
+    )
+    .addEventListener(
+      "click",
+      () => {
+        if (!selected) return;
 
         const index =
-          proLayers.indexOf(
-            selectedLayer
+          layers.indexOf(
+            selected
           );
 
         if (index !== -1) {
-          proLayers.splice(
+          layers.splice(
             index,
             1
           );
         }
 
-        selectedLayer = null;
+        selected = null;
 
-        updateSelectedInfo();
+        status.textContent =
+          "No photo selected";
 
-        render();
+        redraw();
       }
     );
 
-  // -----------------------------------------
-  // Rotate left
-  // -----------------------------------------
+  // --------------------------------------------------
+  // OPACITY
+  // --------------------------------------------------
 
-  document
-    .getElementById("proRotateLeft")
-    .addEventListener(
-      "click",
-      () => {
-        if (!selectedLayer) return;
+  opacity.addEventListener(
+    "input",
+    event => {
+      if (!selected) return;
 
-        selectedLayer.rotation -= 15;
+      selected.opacity =
+        Number(
+          event.target.value
+        ) / 100;
 
-        render();
-      }
-    );
-
-  // -----------------------------------------
-  // Rotate right
-  // -----------------------------------------
-
-  document
-    .getElementById("proRotateRight")
-    .addEventListener(
-      "click",
-      () => {
-        if (!selectedLayer) return;
-
-        selectedLayer.rotation += 15;
-
-        render();
-      }
-    );
-
-  // -----------------------------------------
-  // Opacity
-  // -----------------------------------------
-
-  document
-    .getElementById("proOpacity")
-    .addEventListener(
-      "input",
-      event => {
-        if (!selectedLayer) return;
-
-        selectedLayer.opacity =
-          Number(event.target.value) /
-          100;
-
-        render();
-      }
-    );
-
-  // -----------------------------------------
-  // Selected layer information
-  // -----------------------------------------
-
-  function updateSelectedInfo() {
-    const name =
-      document.getElementById(
-        "proSelectedName"
-      );
-
-    if (!name) return;
-
-    if (!selectedLayer) {
-      name.textContent =
-        "None";
-
-      return;
+      redraw();
     }
-
-    name.textContent =
-      selectedLayer.name;
-  }
-
-  // -----------------------------------------
-  // Make the Pro Editor visible
-  // -----------------------------------------
-
-  panel.style.marginTop =
-    "20px";
-
-  panel.style.padding =
-    "16px";
-
-  panel.style.border =
-    "1px solid #292e38";
-
-  panel.style.borderRadius =
-    "12px";
-
-  panel.style.background =
-    "#11151c";
-
-  // -----------------------------------------
-  // Initial state
-  // -----------------------------------------
+  );
 
   console.log(
-    "Thumbnail Maker Pro Editor loaded."
+    "✨ Pro Editor loaded successfully."
   );
 })();
