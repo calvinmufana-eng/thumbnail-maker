@@ -1,160 +1,459 @@
-> {
+(() => {
   "use strict";
 
-  if (window.__PRO_TOOLS_UI_LOADED__) return;
-  window.__PRO_TOOLS_UI_LOADED__ = true;
-
-  const panel = document.getElementById("proEditor");
-
-  if (!panel) {
-    console.error("Pro Tools UI: Pro Editor panel not found.");
+  if (window.__PRO_TOOLS_UI_LOADED__) {
+    console.log("Pro Tools UI already loaded.");
     return;
   }
 
-  // Remove an older tools UI if one exists
-  const oldUI = document.getElementById("proToolsUI");
-  if (oldUI) oldUI.remove();
+  window.__PRO_TOOLS_UI_LOADED__ = true;
 
-  const ui = document.createElement("div");
-  ui.id = "proToolsUI";
+  function start() {
+    const panel =
+      document.getElementById("proEditor");
 
-  ui.innerHTML = `
-    <div class="tools-title">
-      ✨ Pro Editor
-    </div>
+    if (!panel) {
+      console.error(
+        "Pro Tools UI: #proEditor was not found."
+      );
+      return;
+    }
 
-    <div class="tools-grid">
+    // Remove previous compact UI
+    const old =
+      document.getElementById("proToolsUI");
 
-      <button class="tool-btn active" data-tool="move">
-        🖱️ Move
-      </button>
+    if (old) old.remove();
 
-      <button class="tool-btn" data-tool="resize">
-        📏 Resize
-      </button>
+    // ========================================
+    // MAIN UI
+    // ========================================
 
-      <button class="tool-btn" data-tool="crop">
-        ✂️ Crop
-      </button>
+    const ui =
+      document.createElement("div");
 
-      <button class="tool-btn" data-tool="green">
-        🟢 Green Screen
-      </button>
+    ui.id = "proToolsUI";
 
-      <button class="tool-btn" data-tool="background">
-        🪄 Remove BG
-      </button>
-
-      <button class="tool-btn" data-tool="effects">
-        🎨 Effects
-      </button>
-
-    </div>
-
-    <div
-      id="selectedToolControls"
-      class="selected-tool-controls"
-    >
-      <div class="tool-message">
-        🖱️ Move Mode is active.
-        <br>
-        Drag your picture to position it.
+    ui.innerHTML = `
+      <div class="pt-title">
+        ✨ Pro Editor Tools
       </div>
-    </div>
-  `;
 
-  panel.appendChild(ui);
+      <div class="pt-grid">
 
-  // ==========================================
-  // STYLES
-  // ==========================================
+        <button class="pt-tool active" data-tool="move">
+          🖱️ Move
+        </button>
 
-  const style = document.createElement("style");
+        <button class="pt-tool" data-tool="resize">
+          📏 Resize
+        </button>
 
-  style.id = "proToolsUIStyles";
+        <button class="pt-tool" data-tool="crop">
+          ✂️ Crop
+        </button>
 
-  style.textContent = `
-    #proToolsUI {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid #374151;
+        <button class="pt-tool" data-tool="green">
+          🟢 Green Screen
+        </button>
+
+        <button class="pt-tool" data-tool="background">
+          🪄 Remove BG
+        </button>
+
+        <button class="pt-tool" data-tool="effects">
+          🎨 Effects
+        </button>
+
+      </div>
+
+      <div id="ptControls">
+        <div class="pt-info">
+          🖱️ <strong>Move</strong><br>
+          Drag your picture to position it.
+        </div>
+      </div>
+    `;
+
+    panel.appendChild(ui);
+
+    // ========================================
+    // STYLES
+    // ========================================
+
+    if (!document.getElementById("ptStyles")) {
+
+      const style =
+        document.createElement("style");
+
+      style.id = "ptStyles";
+
+      style.textContent = `
+        #proToolsUI {
+          margin-top: 14px;
+          padding-top: 14px;
+          border-top: 1px solid #374151;
+        }
+
+        .pt-title {
+          font-size: 16px;
+          font-weight: 800;
+          margin-bottom: 10px;
+        }
+
+        .pt-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 7px;
+        }
+
+        .pt-tool {
+          width: 100%;
+          margin: 0 !important;
+          padding: 10px 6px !important;
+          border: 0;
+          border-radius: 8px;
+          background: #374151 !important;
+          color: white;
+          font-size: 12px !important;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .pt-tool.active {
+          background: #2563eb !important;
+        }
+
+        .pt-tool:hover {
+          filter: brightness(1.15);
+        }
+
+        #ptControls {
+          margin-top: 9px;
+          padding: 10px;
+          border-radius: 9px;
+          background: #1f2937;
+        }
+
+        .pt-info {
+          color: #d1d5db;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .pt-control-title {
+          color: white;
+          font-size: 13px;
+          font-weight: 800;
+          margin-bottom: 8px;
+        }
+
+        .pt-action {
+          width: 100%;
+          margin-top: 7px !important;
+          padding: 9px !important;
+          border: 0;
+          border-radius: 8px;
+          color: white;
+          background: #374151;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .pt-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 7px;
+        }
+
+        .pt-slider {
+          width: 100%;
+          margin-top: 7px;
+        }
+      `;
+
+      document.head.appendChild(style);
     }
 
-    .tools-title {
-      font-size: 16px;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
+    const controls =
+      document.getElementById("ptControls");
 
-    .tools-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 7px;
-    }
+    const buttons =
+      ui.querySelectorAll(".pt-tool");
 
-    .tool-btn {
-      margin: 0 !important;
-      padding: 9px 7px !important;
-      font-size: 12px !important;
-      background: #374151 !important;
-      border-radius: 8px !important;
-    }
+    // ========================================
+    // TOOL CONTENT
+    // ========================================
 
-    .tool-btn.active {
-      background: #2563eb !important;
-    }
+    const content = {
 
-    .selected-tool-controls {
-      margin-top: 9px;
-      padding: 10px;
-      border-radius: 9px;
-      background: #1f2937;
-    }
+      move: `
+        <div class="pt-info">
+          🖱️ <strong>Move</strong><br>
+          Drag your picture to position it.
+        </div>
+      `,
 
-    .tool-message {
-      color: #cbd5e1;
-      font-size: 12px;
-      line-height: 1.5;
-    }
+      resize: `
+        <div class="pt-control-title">
+          📏 Resize
+        </div>
 
-    .tool-control-title {
-      font-weight: 800;
-      margin-bottom: 8px;
-      color: white;
-    }
+        <input
+          id="ptResize"
+          class="pt-slider"
+          type="range"
+          min="10"
+          max="200"
+          value="100"
+        >
 
-    .tool-action {
-      width: 100%;
-      margin-top: 6px !important;
-      padding: 9px !important;
-      font-size: 12px !important;
-    }
+        <div
+          style="text-align:center;margin-top:5px;"
+        >
+          <strong id="ptResizeValue">100%</strong>
+        </div>
+      `,
 
-    .tool-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 7px;
-    }
+      crop: `
+        <div class="pt-control-title">
+          ✂️ Crop
+        </div>
 
-    @media (max-width: 420px) {
-      .tools-grid {
-        grid-template-columns: 1fr 1fr;
-      }
+        <div class="pt-info">
+          Select the photo first, then start cropping.
+        </div>
 
-      .tool-btn {
-        font-size: 1
+        <button
+          class="pt-action"
+          id="ptStartCrop"
+        >
+          ✂️ Start Crop
+        </button>
+      `,
 
-    effects: `
-      <div class="tool-message">
-        <div class="tool-control-title">
+      green: `
+        <div class="pt-control-title">
+          🟢 Green Screen
+        </div>
+
+        <div class="pt-info">
+          Remove green from your selected picture.
+        </div>
+
+        <button
+          class="pt-action"
+          id="ptGreenStart"
+        >
+          🟢 Start Green Screen
+        </button>
+      `,
+
+      background: `
+        <div class="pt-control-title">
+          🪄 Remove Background
+        </div>
+
+        <div class="pt-info">
+          Remove the background from the selected picture.
+        </div>
+
+        <button
+          class="pt-action"
+          id="ptRemoveBG"
+        >
+          🪄 Remove Background
+        </button>
+      `,
+
+      effects: `
+        <div class="pt-control-title">
           🎨 Effects
         </div>
 
-        Filters and image effects will appear here.
+        <div class="pt-info">
+          Adjust the appearance of your picture.
+        </div>
+
         <button
-          class="tool-action"
-          id="openEffects"
+          class="pt-action"
+          id="ptEffects"
         >
           🎨 Open Effects
         </button>
-      </div
+      `
+    };
+
+    // ========================================
+    // TOOL SWITCHING
+    // ========================================
+
+    buttons.forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          buttons.forEach(
+            b => b.classList.remove("active")
+          );
+
+          button.classList.add("active");
+
+          const tool =
+            button.dataset.tool;
+
+          controls.innerHTML =
+            content[tool];
+
+          connect(tool);
+        }
+      );
+
+    });
+
+    // ========================================
+    // CONNECT CONTROLS
+    // ========================================
+
+    function connect(tool) {
+
+      if (tool === "resize") {
+
+        const slider =
+          document.getElementById("ptResize");
+
+        const value =
+          document.getElementById(
+            "ptResizeValue"
+          );
+
+        slider.addEventListener(
+          "input",
+          () => {
+
+            value.textContent =
+              `${slider.value}%`;
+
+            const editor =
+              window.ProEditor;
+
+            if (!editor) return;
+
+            const layer =
+              editor.getSelected();
+
+            if (!layer) return;
+
+            const scale =
+              Number(slider.value) / 100;
+
+            layer.scaleX = scale;
+            layer.scaleY = scale;
+
+            editor.render();
+          }
+        );
+      }
+
+      if (tool === "crop") {
+
+        document
+          .getElementById("ptStartCrop")
+          ?.addEventListener(
+            "click",
+            () => {
+
+              console.log(
+                "Crop tool activated."
+              );
+
+              alert(
+                "Crop mode activated."
+              );
+            }
+          );
+      }
+
+      if (tool === "green") {
+
+        document
+          .getElementById("ptGreenStart")
+          ?.addEventListener(
+            "click",
+            () => {
+
+              console.log(
+                "Green Screen tool activated."
+              );
+
+              alert(
+                "Green Screen tool activated."
+              );
+            }
+          );
+      }
+
+      if (tool === "background") {
+
+        document
+          .getElementById("ptRemoveBG")
+          ?.addEventListener(
+            "click",
+            () => {
+
+              console.log(
+                "Background removal activated."
+              );
+
+              alert(
+                "Background removal will be connected next."
+              );
+            }
+          );
+      }
+
+      if (tool === "effects") {
+
+        document
+          .getElementById("ptEffects")
+          ?.addEventListener(
+            "click",
+            () => {
+
+              console.log(
+                "Effects tool activated."
+              );
+
+              alert(
+                "Effects controls will be connected next."
+              );
+            }
+          );
+      }
+    }
+
+    console.log(
+      "✨ Pro Tools UI successfully created."
+    );
+  }
+
+  // Wait for the existing Pro Editor
+  function waitForEditor() {
+
+    if (
+      document.getElementById("proEditor")
+    ) {
+      start();
+      return;
+    }
+
+    setTimeout(
+      waitForEditor,
+      100
+    );
+  }
+
+  waitForEditor();
+
+})();
