@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thumbnail Maker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Thumbnail Maker</h1>
+      <p>Create a YouTube-style thumbnail in your browser.</p>
+    </header>
+
+    <section class="workspace">
+      <div class="controls">
+        <label>
+          Upload image
+          <input id="imageInput" type="file" accept="image/*">
+        </label>
+
+        <label>
+          Title
+          <input id="titleInput" type="text" value="YOUR THUMBNAIL TITLE" maxlength="60">
+        </label>
+
+        <label>
+          Font size
+          <input id="fontSizeInput" type="range" min="30" max="120" value="70">
+          <span id="fontSizeValue">70px</span>
+        </label>
+
+        <label>
+          Text color
+          <input id="textColorInput" type="color" value="#ffffff">
+        </label>
+
+        <label>
+          Background
+          <input id="backgroundInput" type="color" value="#202020">
+        </label>
+
+        <label class="checkbox">
+          <input id="shadowInput" type="checkbox" checked>
+          Text shadow
+        </label>
+
+        <button id="downloadBtn">Download Thumbnail</button>
+      </div>
+
+      <div class="preview-wrap">
+        <canvas id="thumbnailCanvas" width="1280" height="720"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
