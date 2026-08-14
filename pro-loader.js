@@ -1,4 +1,8 @@
-(() => {
+const aiStudioScript = document.createElement("script");
+
+aiStudioScript.src = "ai-studio.js";
+
+document.body.appendChild(aiStudioScript);(() => {
   "use strict";
 
   function loadScript(src, next) {
