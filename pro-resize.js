@@ -1,40 +1,63 @@
 (() => {
   "use strict";
 
-  if (window.__PRO_RESIZE_LOADED__) {
-    console.log("Resize tools already loaded.");
-    return;
-  }
-
+  // Prevent duplicate loading
+  if (window.__PRO_RESIZE_LOADED__) return;
   window.__PRO_RESIZE_LOADED__ = true;
 
   const editor = window.ProEditor;
 
   if (!editor) {
-    console.error("Resize tools: Pro Editor is not ready.");
+    console.error("Pro Editor is not ready.");
     return;
   }
 
   const panel = document.getElementById("proEditor");
 
   if (!panel) {
-    console.error("Resize tools: Pro Editor panel not found.");
+    console.error("Pro Editor panel was not found.");
     return;
   }
 
-  const section = document.createElement("div");
+  // Remove an older Transform section if one exists
+  const oldSection =
+    panel.querySelector(".pro-resize-section");
 
-  section.className = "pro-resize-section";
+  if (oldSection) {
+    oldSection.remove();
+  }
+
+  // ==========================================
+  // TRANSFORM SECTION
+  // ==========================================
+
+  const section =
+    document.createElement("div");
+
+  section.className =
+    "pro-resize-section";
 
   section.innerHTML = `
-    <h3>📏 Transform</h3>
+    <h3>📐 Transform</h3>
 
-    <button id="proMoveOnly">
-      🖱️ Move Only: ON
+    <button
+      id="proMoveOnly"
+      class="transform-mode active"
+    >
+      🖱️ Move Only
     </button>
 
-    <label>
-      Size
+    <button
+      id="proResizeMode"
+      class="transform-mode"
+    >
+      📏 Resize Mode
+    </button>
+
+    <label class="transform-size">
+      Size:
+      <strong id="proSizeValue">100%</strong>
+
       <input
         id="proSize"
         type="range"
@@ -42,64 +65,89 @@
         max="200"
         value="100"
       >
-      <strong id="proSizeValue">100%</strong>
     </label>
 
-    <div class="pro-resize-buttons">
-      <button id="proSizeUp">➕ Bigger</button>
-      <button id="proSizeDown">➖ Smaller</button>
-      <button id="proCrop">✂️ Crop</button>
+    <div class="transform-buttons">
+      <button id="proSizeUp">
+        ➕ Bigger
+      </button>
+
+      <button id="proSizeDown">
+        ➖ Smaller
+      </button>
+
+      <button id="proCrop">
+        ✂️ Crop
+      </button>
     </div>
 
-    <p id="proResizeStatus">
-      Move Only is ON.
-    </p>
+    <div
+      id="proResizeStatus"
+      class="transform-status"
+    >
+      Move Only is active. Dragging the photo
+      will only move it.
+    </div>
   `;
 
   panel.appendChild(section);
 
-  const style = document.createElement("style");
+  // ==========================================
+  // STYLES
+  // ==========================================
+
+  const style =
+    document.createElement("style");
+
+  style.id =
+    "proResizeStyles";
 
   style.textContent = `
     .pro-resize-section {
-      margin-top: 15px;
-      padding-top: 15px;
+      margin-top: 18px;
+      padding-top: 16px;
       border-top: 1px solid #374151;
     }
 
     .pro-resize-section h3 {
       margin: 0 0 12px;
-      font-size: 15px;
+      font-size: 16px;
     }
 
-    .pro-resize-section label {
+    .transform-mode {
+      width: 100%;
+      margin-top: 7px;
+      background: #374151;
+    }
+
+    .transform-mode.active {
+      background: #059669;
+    }
+
+    .transform-size {
       display: block;
-      margin-top: 12px;
+      margin-top: 15px;
       font-size: 13px;
       font-weight: 700;
     }
 
-    .pro-resize-section input {
+    .transform-size input {
+      display: block;
       width: 100%;
       margin-top: 8px;
     }
 
-    .pro-resize-buttons {
+    .transform-buttons {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-top: 10px;
     }
 
-    .pro-resize-buttons button {
+    .transform-buttons button {
       margin-top: 0;
       background: #374151;
       font-size: 12px;
-    }
-
-    #proMoveOnly {
-      margin-top: 0;
-      background: #059669;
     }
 
     #proCrop {
@@ -107,14 +155,30 @@
       background: #7c3aed;
     }
 
-    #proResizeStatus {
-      font-size: 12px;
-      color: #9ca3af;
+    .transform-status {
       margin-top: 10px;
+      padding: 9px;
+      border-radius: 8px;
+      background: #1f2937;
+      color: #cbd5e1;
+      font-size: 12px;
+      line-height: 1.4;
     }
   `;
 
-  document.head.appendChild(style);
+  if (!document.getElementById("proResizeStyles")) {
+    document.head.appendChild(style);
+  }
+
+  // ==========================================
+  // ELEMENTS
+  // ==========================================
+
+  const moveButton =
+    document.getElementById("proMoveOnly");
+
+  const resizeButton =
+    document.getElementById("proResizeMode");
 
   const sizeSlider =
     document.getElementById("proSize");
@@ -122,26 +186,69 @@
   const sizeValue =
     document.getElementById("proSizeValue");
 
-  const moveButton =
-    document.getElementById("proMoveOnly");
-
   const status =
     document.getElementById("proResizeStatus");
 
-  let moveOnly = true;
+  let resizeMode = false;
 
-  function updateSize(value) {
-    const layer = editor.getSelected();
+  // ==========================================
+  // MOVE ONLY
+  // ==========================================
+
+  moveButton.addEventListener(
+    "click",
+    () => {
+
+      resizeMode = false;
+
+      moveButton.classList.add("active");
+      resizeButton.classList.remove("active");
+
+      status.textContent =
+        "Move Only is active. Dragging the photo will only move it.";
+    }
+  );
+
+  // ==========================================
+  // RESIZE MODE
+  // ==========================================
+
+  resizeButton.addEventListener(
+    "click",
+    () => {
+
+      resizeMode = true;
+
+      resizeButton.classList.add("active");
+      moveButton.classList.remove("active");
+
+      status.textContent =
+        "Resize Mode is active. Use the size controls.";
+    }
+  );
+
+  // ==========================================
+  // SIZE SLIDER
+  // ==========================================
+
+  function resizeSelected(value) {
+
+    const layer =
+      editor.getSelected();
 
     if (!layer) {
+
       status.textContent =
-        "Select a photo first.";
+        "Upload and select a photo first.";
+
       return;
     }
 
-    if (moveOnly) {
+    if (!resizeMode) {
+
       status.textContent =
-        "Move Only is ON — use the Size slider to resize.";
+        "Move Only is active. Select Resize Mode first.";
+
       return;
     }
 
@@ -154,50 +261,23 @@
     sizeValue.textContent =
       `${value}%`;
 
-    status.textContent =
-      `Photo size: ${value}%`;
-
     editor.render();
   }
-
-  moveButton.addEventListener(
-    "click",
-    () => {
-
-      moveOnly = !moveOnly;
-
-      if (moveOnly) {
-
-        moveButton.textContent =
-          "🖱️ Move Only: ON";
-
-        moveButton.style.background =
-          "#059669";
-
-        status.textContent =
-          "Move Only is ON.";
-
-      } else {
-
-        moveButton.textContent =
-          "📏 Resize Mode: ON";
-
-        moveButton.style.background =
-          "#2563eb";
-
-        status.textContent =
-          "Resize Mode is ON.";
-
-      }
-    }
-  );
 
   sizeSlider.addEventListener(
     "input",
     () => {
-      updateSize(sizeSlider.value);
+
+      resizeSelected(
+        sizeSlider.value
+      );
+
     }
   );
+
+  // ==========================================
+  // BIGGER
+  // ==========================================
 
   document
     .getElementById("proSizeUp")
@@ -205,9 +285,11 @@
       "click",
       () => {
 
-        if (moveOnly) {
+        if (!resizeMode) {
+
           status.textContent =
-            "Turn Resize Mode ON first.";
+            "Select Resize Mode first.";
+
           return;
         }
 
@@ -215,13 +297,21 @@
           Number(sizeSlider.value) + 10;
 
         value =
-          Math.min(value, 200);
+          Math.min(
+            value,
+            200
+          );
 
-        sizeSlider.value = value;
+        sizeSlider.value =
+          value;
 
-        updateSize(value);
+        resizeSelected(value);
       }
     );
+
+  // ==========================================
+  // SMALLER
+  // ==========================================
 
   document
     .getElementById("proSizeDown")
@@ -229,9 +319,11 @@
       "click",
       () => {
 
-        if (moveOnly) {
+        if (!resizeMode) {
+
           status.textContent =
-            "Turn Resize Mode ON first.";
+            "Select Resize Mode first.";
+
           return;
         }
 
@@ -239,13 +331,21 @@
           Number(sizeSlider.value) - 10;
 
         value =
-          Math.max(value, 10);
+          Math.max(
+            value,
+            10
+          );
 
-        sizeSlider.value = value;
+        sizeSlider.value =
+          value;
 
-        updateSize(value);
+        resizeSelected(value);
       }
     );
+
+  // ==========================================
+  // CROP
+  // ==========================================
 
   document
     .getElementById("proCrop")
@@ -253,23 +353,26 @@
       "click",
       () => {
 
-        const layer = editor.getSelected();
+        const layer =
+          editor.getSelected();
 
         if (!layer) {
+
           status.textContent =
             "Select a photo first.";
+
           return;
         }
 
         status.textContent =
-          "Crop tool coming next.";
+          "✂️ Crop tool will be added in the next upgrade.";
       }
     );
 
   console.log(
-    "📏 Move/Resize controls loaded."
+    "📐 Transform controls loaded."
   );
 
 })();
-
+    
   
