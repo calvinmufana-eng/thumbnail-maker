@@ -1,39 +1,38 @@
 (() => {
   "use strict";
 
-  const editorScript =
-    document.createElement("script");
+  function loadScript(src, next) {
+    const script = document.createElement("script");
 
-  editorScript.src = "pro-editor.js";
+    script.src = src;
 
-  editorScript.onload = () => {
+    script.onload = () => {
+      console.log("Loaded:", src);
 
-    const resizeScript =
-      document.createElement("script");
-
-    resizeScript.src = "pro-resize.js";
-
-    resizeScript.onload = () => {
-
-      const toolsScript =
-        document.createElement("script");
-
-      toolsScript.src = "pro-tools-ui.js";
-
-      document.body.appendChild(
-        toolsScript
-      );
-
+      if (next) next();
     };
 
-    document.body.appendChild(
-      resizeScript
-    );
+    script.onerror = () => {
+      console.error("Could not load:", src);
+    };
 
-  };
+    document.body.appendChild(script);
+  }
 
-  document.body.appendChild(
-    editorScript
-  );
+  loadScript("pro-editor.js", () => {
+
+    loadScript("pro-resize.js", () => {
+
+      loadScript("pro-tools-ui.js", () => {
+
+        console.log(
+          "✨ All Pro Editor tools loaded."
+        );
+
+      });
+
+    });
+
+  });
 
 })();
