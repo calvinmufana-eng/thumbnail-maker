@@ -117,10 +117,18 @@
       }
 
       #updatesMenu {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-        margin-top: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+
+#updatesMenu[hidden] {
+  display: none !important;
+}
+
+#updatesMenu:not([hidden]) {
+  display: grid;
+}
       }
 
       #updatesMenu button {
