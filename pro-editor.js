@@ -121,16 +121,17 @@
     </div>
 
     <label class="pro-control">
-      Opacity
+  Opacity:
+  <strong id="proOpacityValue">100%</strong>
 
-      <input
-        id="proOpacity"
-        type="range"
-        min="0"
-        max="100"
-        value="100"
-      >
-    </label>
+  <input
+    id="proOpacity"
+    type="range"
+    min="0"
+    max="100"
+    value="100"
+  >
+</label>
 
     <div class="pro-help">
       <strong>How to edit</strong>
@@ -927,8 +928,34 @@
     };
 
   // ==========================================
-  // OPACITY
-  // ==========================================
+// OPACITY
+// ==========================================
+
+const opacityValue =
+  document.getElementById("proOpacityValue");
+
+opacity.addEventListener(
+  "input",
+  event => {
+
+    if (!selected)
+      return;
+
+    const value =
+      Number(event.target.value);
+
+    selected.opacity =
+      value / 100;
+
+    if (opacityValue) {
+      opacityValue.textContent =
+        `${value}%`;
+    }
+
+    render();
+
+  }
+);
 
   opacity.addEventListener(
     "input",
