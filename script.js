@@ -1,126 +1,277 @@
-const canvas = document.getElementById("thumbnailCanvas");
-const ctx = canvas.getContext("2d");
-
-const imageInput = document.getElementById("imageInput");
-const titleInput = document.getElementById("titleInput");
-const fontSizeInput = document.getElementById("fontSizeInput");
-const fontSizeValue = document.getElementById("fontSizeValue");
-const textColorInput = document.getElementById("textColorInput");
-const backgroundInput = document.getElementById("backgroundInput");
-const shadowInput = document.getElementById("shadowInput");
-const downloadBtn = document.getElementById("downloadBtn");
-
-let uploadedImage = null;
-
-function drawThumbnail() {
-  const width = canvas.width;
-  const height = canvas.height;
-
-  ctx.fillStyle = backgroundInput.value;
-  ctx.fillRect(0, 0, width, height);
-
-  if (uploadedImage) {
-    const imageRatio = uploadedImage.width / uploadedImage.height;
-    const canvasRatio = width / height;
-    let drawWidth, drawHeight, x, y;
-
-    if (imageRatio > canvasRatio) {
-      drawHeight = height;
-      drawWidth = height * imageRatio;
-      x = (width - drawWidth) / 2;
-      y = 0;
-    } else {
-      drawWidth = width;
-      drawHeight = width / imageRatio;
-      x = 0;
-      y = (height - drawHeight) / 2;
-    }
-
-    ctx.drawImage(uploadedImage, x, y, drawWidth, drawHeight);
-  }
-
-  const title = titleInput.value.trim() || "YOUR THUMBNAIL TITLE";
-  const fontSize = Number(fontSizeInput.value);
-
-  ctx.font = `900 ${fontSize}px Arial`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  if (shadowInput.checked) {
-    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-    ctx.shadowBlur = 12;
-    ctx.shadowOffsetX = 5;
-    ctx.shadowOffsetY = 5;
-  } else {
-    ctx.shadowColor = "transparent";
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-  }
-
-  ctx.fillStyle = textColorInput.value;
-
-  // Keep long titles readable by wrapping them.
-  const maxWidth = width * 0.88;
-  const words = title.split(/\s+/);
-  const lines = [];
-  let line = "";
-
-  for (const word of words) {
-    const testLine = line ? `${line} ${word}` : word;
-    if (ctx.measureText(testLine).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = testLine;
-    }
-  }
-  if (line) lines.push(line);
-
-  const lineHeight = fontSize * 1.1;
-  const startY = height / 2 - ((lines.length - 1) * lineHeight) / 2;
-
-  lines.forEach((text, index) => {
-    ctx.fillText(text, width / 2, startY + index * lineHeight);
-  });
-
-  ctx.shadowColor = "transparent";
+* {
+  box-sizing: border-box;
 }
 
-imageInput.addEventListener("change", (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #0f1115;
+  color: #ffffff;
+}
 
-  const reader = new FileReader();
+button,
+input,
+select {
+  font: inherit;
+}
 
-  reader.onload = () => {
-    const image = new Image();
-    image.onload = () => {
-      uploadedImage = image;
-      drawThumbnail();
-    };
-    image.src = reader.result;
-  };
+button {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+}
 
-  reader.readAsDataURL(file);
-});
+button:hover {
+  background: #1d4ed8;
+}
 
-titleInput.addEventListener("input", drawThumbnail);
+.app {
+  width: 100%;
+  min-height: 100vh;
+}
 
-fontSizeInput.addEventListener("input", () => {
-  fontSizeValue.textContent = `${fontSizeInput.value}px`;
-  drawThumbnail();
-});
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  background: #171a21;
+  border-bottom: 1px solid #292e38;
+}
 
-textColorInput.addEventListener("input", drawThumbnail);
-backgroundInput.addEventListener("input", drawThumbnail);
-shadowInput.addEventListener("change", drawThumbnail);
+.app-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
 
-downloadBtn.addEventListener("click", () => {
-  const link = document.createElement("a");
-  link.download = "thumbnail.png";
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-});
+.app-header p {
+  margin: 6px 0 0;
+  color: #aeb6c4;
+}
 
-drawThumbnail();
+.format-control {
+  min-width: 280px;
+}
+
+.format-control label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+select,
+input[type="text"] {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #343b48;
+  border-radius: 9px;
+  background: #0f1115;
+  color: white;
+  outline: none;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 230px;
+  gap: 18px;
+  padding: 18px;
+  min-height: calc(100vh - 110px);
+}
+
+.controls,
+.layers-panel {
+  background: #171a21;
+  border: 1px solid #292e38;
+  border-radius: 14px;
+  padding: 18px;
+  height: fit-content;
+}
+
+.controls h2,
+.layers-panel h2 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+
+.controls label {
+  display: block;
+  margin-bottom: 15px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.controls label input[type="file"],
+.controls label input[type="text"],
+.controls label input[type="range"],
+.controls label input[type="color"] {
+  display: block;
+  margin-top: 7px;
+}
+
+input[type="file"] {
+  width: 100%;
+  color: #cbd5e1;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: #2563eb;
+}
+
+input[type="color"] {
+  width: 55px;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid #343b48;
+  border-radius: 8px;
+  background: #0f1115;
+}
+
+.checkbox {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox input {
+  width: auto !important;
+  margin: 0 !important;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #292e38;
+  margin: 20px 0;
+}
+
+.button-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.button-row button {
+  margin-top: 0;
+}
+
+.preview-area {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #171a21;
+  border: 1px solid #292e38;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.canvas-toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: #aeb6c4;
+  font-size: 14px;
+}
+
+.preview-wrap {
+  flex: 1;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 20px;
+  background:
+    linear-gradient(45deg, #20242c 25%, transparent 25%),
+    linear-gradient(-45deg, #20242c 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #20242c 75%),
+    linear-gradient(-45deg, transparent 75%, #20242c 75%);
+  background-size: 24px 24px;
+  background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+  border-radius: 10px;
+}
+
+#thumbnailCanvas {
+  display: block;
+  max-width: 100%;
+  max-height: 75vh;
+  width: auto;
+  height: auto;
+  background: #202020;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.45);
+  cursor: crosshair;
+}
+
+.layers-panel button {
+  font-size: 13px;
+}
+
+#layersList {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.layer-item,
+.empty-layers {
+  padding: 10px;
+  border-radius: 8px;
+  background: #202027;
+  color: #b8c0cc;
+  font-size: 13px;
+}
+
+.layer-item {
+  cursor: pointer;
+}
+
+.layer-item:hover {
+  background: #292e38;
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .layers-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 750px) {
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .format-control {
+    min-width: 0;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+
+  .controls,
+  .layers-panel {
+    width: 100%;
+  }
+
+  .preview-wrap {
+    min-height: 300px;
+    padding: 10px;
+  }
+
+  #thumbnailCanvas {
+    max-height: 65vh;
+  }
+}
