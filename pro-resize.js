@@ -344,8 +344,54 @@
     );
 
   // ==========================================
-  // CROP
-  // ==========================================
+// CROP
+// ==========================================
+
+const cropButton =
+  document.getElementById("proCrop");
+
+let cropMode = false;
+
+cropButton.addEventListener(
+  "click",
+  () => {
+
+    const layer =
+      editor.getSelected();
+
+    if (!layer) {
+      status.textContent =
+        "Select a photo first.";
+      return;
+    }
+
+    cropMode = !cropMode;
+
+    if (cropMode) {
+
+      cropButton.textContent =
+        "✅ Finish Crop";
+
+      cropButton.style.background =
+        "#059669";
+
+      status.textContent =
+        "Crop mode is active. Use the crop controls.";
+
+    } else {
+
+      cropButton.textContent =
+        "✂️ Crop";
+
+      cropButton.style.background =
+        "#7c3aed";
+
+      status.textContent =
+        "Crop mode finished.";
+
+    }
+  }
+);
 
   document
     .getElementById("proCrop")
